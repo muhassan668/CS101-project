@@ -220,6 +220,9 @@ void start_billing_system() {
     // --- Payment ---
     int choice;
     double recieved_cash, remaining_amount;
+    string phone_number; // Variable to store phone number
+    int otp;             // Variable to store OTP
+
     cout << MAGENTA << "\nPayment Methods: " << RESET << endl; 
     cout << CYAN << "1-Jazzcash\n2-Card\n3-Easypaisa\n4-Cash" << RESET << endl;
     cout << YELLOW << "Select Method: " << RESET;
@@ -227,9 +230,42 @@ void start_billing_system() {
     do {
         cin >> choice;
         switch(choice) {
-            case 1: cout << GREEN << "Paid via JazzCash." << RESET << endl; break;
-            case 2: cout << GREEN << "Paid via Card." << RESET << endl; break;
-            case 3: cout << GREEN << "Paid via EasyPaisa." << RESET << endl; break;
+            case 1: 
+                // JazzCash Logic with Error Handling
+                do {
+                    cout << CYAN << "Enter JazzCash Account Number (11 digits): " << RESET;
+                    cin >> phone_number;
+                    if (phone_number.length() != 11) {
+                        cout << RED << "Error: Number must be exactly 11 digits. Try again." << RESET << endl;
+                    }
+                } while(phone_number.length() != 11);
+
+                cout << YELLOW << "Sending OTP to " << phone_number << "..." << RESET << endl;
+                cout << CYAN << "Enter OTP received on phone: " << RESET;
+                cin >> otp;
+                cout << GREEN << "Payment Verified! Paid via JazzCash." << RESET << endl;
+                break;
+
+            case 2: 
+                cout << GREEN << "Paid via Card." << RESET << endl; 
+                break;
+
+            case 3: 
+                // EasyPaisa Logic with Error Handling
+                do {
+                    cout << CYAN << "Enter EasyPaisa Account Number (11 digits): " << RESET;
+                    cin >> phone_number;
+                    if (phone_number.length() != 11) {
+                        cout << RED << "Error: Number must be exactly 11 digits. Try again." << RESET << endl;
+                    }
+                } while(phone_number.length() != 11);
+
+                cout << YELLOW << "Sending OTP to " << phone_number << "..." << RESET << endl;
+                cout << CYAN << "Enter OTP received on phone: " << RESET;
+                cin >> otp;
+                cout << GREEN << "Payment Verified! Paid via EasyPaisa." << RESET << endl;
+                break;
+
             case 4:
                  cout << YELLOW << "Selected Cash. Total to Pay: " << sub_total << RESET << endl;
                  remaining_amount = sub_total;
@@ -241,6 +277,7 @@ void start_billing_system() {
                  }
                  if (remaining_amount < 0) cout << GREEN << "Change: " << -remaining_amount << " Rs." << RESET << endl;
                  break;
+                 
             default: cout << RED << "Invalid!" << RESET << endl;
         }
     } while (choice < 1 || choice > 4);
