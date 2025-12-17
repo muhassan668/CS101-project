@@ -1,26 +1,22 @@
-#include <iostream>
+
+#include<iostream>    
 #include <string>
 #include <ctime>
-#include <cstdlib>
+#include <cstdlib>                        //Header Files
 #include <iomanip>
-#include <fstream> 
-#include <cstdio>  
+#include<fstream>
 
 using namespace std;
 
-// ===== COLOR CODES =====
 #define RESET   "\033[0m"
 #define RED     "\033[31m"
 #define GREEN   "\033[32m"
-#define YELLOW  "\033[33m"
+#define YELLOW  "\033[33m"               // Color codes for printing colored text in the console (ANSI escape sequences)                        
 #define BLUE    "\033[34m"
 #define MAGENTA "\033[35m"
 #define CYAN    "\033[36m"
 #define WHITE   "\033[37m"
 
-const string USER_FILE = "users.txt";
-
-// Function to calculate total price
 double calculate_total(double price[], int quantity[], int n) {
     double total = 0;
     for (int i = 0; i < n; i++) {
@@ -29,351 +25,329 @@ double calculate_total(double price[], int quantity[], int n) {
     return total;
 }
 
-// Function to save bill to file and print summary
+bool login() {
+    string username, password, file_user, file_pass;
+    int choice;
+
+    while (true) {
+        // Updated Menu Design for Admin Focus
+        cout << BLUE << "========================================" << RESET << endl;
+        cout << GREEN << "       ADMINISTRATION PORTAL            " << RESET << endl;
+        cout << BLUE << "========================================" << RESET << endl;
+        cout << CYAN << "1. Admin Login (Go to Dashboard)" << RESET << endl;
+        cout << CYAN << "2. Register New Admin" << RESET << endl;
+        cout << CYAN << "3. Exit System" << RESET << endl;
+        cout << YELLOW << "\nSelect an option: " << RESET;
+        cin >> choice;
+
+        if (choice == 1) {
+            // --- ADMIN LOGIN PROCESS ---
+            int attempts = 3;
+            
+            while (attempts > 0) {
+                cout << "\n" << CYAN << "Enter Admin Username: " << RESET;
+                cin >> username;
+                cout << CYAN << "Enter Admin Password: " << RESET;
+                cin >> password;
+
+                ifstream read("users.txt"); // Reading from file
+                bool found = false;
+                
+                if(read.is_open()) {
+                    while (read >> file_user >> file_pass) {
+                        if (file_user == username && file_pass == password) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    read.close();
+                } else {
+                     cout << RED << "No admins registered! Please register first." << RESET << endl;
+                     break; 
+                }
+
+                if (found) {
+                    // --- SHOW DASHBOARD ENTRY ---
+                    cout << GREEN << "\nAccess Granted. Verifying credentials..." << RESET << endl;
+                    cout << BLUE << "========================================" << RESET << endl;
+                    cout << GREEN << "      WELCOME TO ADMIN DASHBOARD        " << RESET << endl;
+                    cout << BLUE << "========================================" << RESET << endl << endl;
+                    return true; // Returns TRUE to main(), which runs the billing code
+                } else {
+                    attempts--;
+                    cout << RED << "Invalid Credentials! Attempts left: " << attempts << RESET << endl;
+                }
+            }
+
+            if (attempts == 0) {
+                cout << RED << "Security Alert: Too many failed attempts. System Locked." << RESET << endl;
+                return false; 
+            }
+
+        } else if (choice == 2) {
+            // --- REGISTER NEW ADMIN ---
+            cout << "\n" << MAGENTA << "Enter New Admin Username: " << RESET;
+            cin >> username;
+            cout << MAGENTA << "Enter New Admin Password: " << RESET;
+            cin >> password;
+
+            ofstream file("users.txt", ios::app);
+            file << username << " " << password << endl;
+            file.close();
+
+            cout << GREEN << "New Admin Registered Successfully!\n" << RESET << endl;
+
+        } else if (choice == 3) {
+            cout << "Exiting system..." << endl;
+            return false;
+        } else {
+            cout << RED << "Invalid Choice! Try again.\n" << RESET;
+        }
+    }
+}
+
 void save_and_print_summary(string customer_name, int bill_number, char *dt, string products[], double price[], int quantity[],  int total_items, double total_bill, double discount, double tax, double sub_total) 
 {
-    ofstream file("bill_summary.txt" , ios::app); 
+    // Opening file to save bill
+    ofstream file("bill_summary.txt" , ios::app);
 
-    // Print to Console
-    cout << BLUE << "==================================================" << RESET << endl;
-    cout << GREEN << "                   BILL RECEIPT                 " << RESET << endl;
-    cout << BLUE << "==================================================" << RESET << endl;
-    cout << CYAN << "\nCustomer name : " << RESET << customer_name << endl;
-    cout << CYAN << "Bill number   : " << RESET << bill_number << endl;
-    cout << CYAN << "Date and Time : " << RESET << dt;
-    cout << BLUE << "--------------------------------------------------" << RESET << endl;
+    // Print & Save Header
+    cout<<"\n\n======= BILL SUMMARY =======\n";
+    file<<"======= BILL SUMMARY =======\n";
 
-    cout << left << YELLOW << setw(15) << "Products" << setw(10) << "Price" << setw(12) << "Quantity" << setw(10) << "Total(Rs.)" << RESET << endl;
-    cout << BLUE << "--------------------------------------------------" << RESET << endl;
+    cout<<"Customer Name : " << customer_name << endl;
+    file<<"Customer Name : " << customer_name << endl;
 
-    // Save Header to File
-    file << "======= BILL SUMMARY =======\n";
-    file << "Customer Name : " << customer_name << endl;
-    file << "Bill Number   : " << bill_number << endl;
-    file << "Date & Time   : " << dt;
-    file << "---------------------------------------\n";
-    file << left << setw(15) << "Product" << setw(10) << "Price" << setw(10) << "Qty" << "Total\n";
-    file << "---------------------------------------\n";
+    cout<<"Bill Number   : " << bill_number << endl;
+    file<<"Bill Number   : " << bill_number << endl;
+
+    cout<<"Date & Time   : " << dt;
+    file<<"Date & Time   : " << dt;
+
+    cout<<"---------------------------------------\n";
+    file<<"---------------------------------------\n";
+
+    cout<<left << setw(15) << "Product" 
+         << setw(10) << "Price" 
+         << setw(10) << "Qty" 
+         << "Total\n";
+
+    file << left << setw(15) << "Product" 
+         << setw(10) << "Price" 
+         << setw(10) << "Qty" 
+         << "Total\n";
+
+    cout<<"---------------------------------------\n";
+    file<<"---------------------------------------\n";
 
     // Loop to print items
     for (int i = 0; i < total_items; i++) {
         double product_total = price[i] * quantity[i];
 
-        // Console
-        cout << left << WHITE << setw(16) << products[i] << setw(12) << price[i] << setw(10) << quantity[i] << GREEN << product_total << " Rs." << RESET << endl;
-        cout << BLUE << "--------------------------------------------------" << RESET << endl;
+        cout<< left << setw(15) << products[i]
+             << setw(10) << price[i]
+             << setw(10) << quantity[i]
+             << product_total << endl;
 
-        // File
-        file << left << setw(15) << products[i] << setw(10) << price[i] << setw(10) << quantity[i] << product_total << endl;
+        file<< left << setw(15) << products[i]
+             << setw(10) << price[i]
+             << setw(10) << quantity[i]
+             << product_total << endl;
     }
 
-    // Console Footer
-    cout << CYAN << "\n              Total Bill : " << GREEN << total_bill << " Rs." << RESET << endl;
-    cout << CYAN << "                Discount : " << GREEN << discount << " Rs." << RESET << endl;
-    cout << CYAN << "                     Tax : " << GREEN << tax << " Rs." << RESET << endl;
-    cout << BLUE << "--------------------------------------------------" << RESET << endl;
-    cout << CYAN << "               Sub Total : " << GREEN << sub_total << " Rs." << RESET << endl;
-    cout << BLUE << "--------------------------------------------------" << RESET << endl;
+    cout<<"\nTotal Bill : " << total_bill << endl;
+    file<<"\nTotal Bill : " << total_bill << endl;
 
-    // File Footer
-    file << "\nTotal Bill : " << total_bill << endl;
-    file << "Discount   : " << discount << endl;
-    file << "Tax        : " << tax << endl;
-    file << "Sub Total  : " << sub_total << endl;
-    file << "\n======= END OF BILL =======\n\n";
+    cout<<"Discount   : " << discount << endl;
+    file<<"Discount   : " << discount << endl;
+
+    cout<<"Tax        : " << tax << endl;
+    file<<"Tax        : " << tax << endl;
+
+    cout<<"Sub Total  : " << sub_total << endl;
+    file<<"Sub Total  : " << sub_total << endl;
+
+    cout<<"\nBill saved to 'bill_summary.txt'\n";
+    file<<"\n======= END OF BILL =======\n";
+    file<<endl;
+    file<<"--------------------------------------" << endl;
+    file<<endl;
 
     file.close();
-    cout << GREEN << "\nReceipt saved to 'bill_summary.txt'" << RESET << endl;
 }
 
-// ===== HELPER: CHECK IF USERNAME EXISTS =====
-bool is_username_taken(string username) {
-    ifstream file(USER_FILE.c_str());
-    string f_user, f_pass;
-    if (!file.is_open()) return false; 
-    while (file >> f_user >> f_pass) {
-        if (f_user == username) {
-            file.close();
-            return true;
-        }
+
+int main(){
+
+    if (!login()) { 
+        return 0;     
     }
-    file.close();
-    return false;
-}
-
-// ===== 1. REGISTER USER (Called from Dashboard) =====
-void register_user() {
-    cout << BLUE << "--------------------------------" << RESET << endl;
-    cout << MAGENTA << "       REGISTER NEW USER        " << RESET << endl;
-    cout << BLUE << "--------------------------------" << RESET << endl;
-
-    string username, password;
-    cout << CYAN << "Enter New Username : " << RESET;
-    cin >> username;
-
-    if (is_username_taken(username)) {
-        cout << RED << "Error: Username already exists!" << RESET << endl;
-        return;
-    }
-
-    cout << CYAN << "Enter New Password : " << RESET;
-    cin >> password;
-
-    ofstream file(USER_FILE.c_str(), ios::app);
-    if (file.is_open()) {
-        file << username << " " << password << endl;
-        file.close();
-        cout << GREEN << "User added successfully." << RESET << endl;
-    } else {
-        cout << RED << "Error: Could not save data." << RESET << endl;
-    }
-}
-
-// ===== 2. DELETE USER (Called from Dashboard) =====
-void delete_user() {
-    cout << BLUE << "--------------------------------" << RESET << endl;
-    cout << RED << "          DELETE USER           " << RESET << endl;
-    cout << BLUE << "--------------------------------" << RESET << endl;
-
-    string username, password, target_user;
-    cout << CYAN << "Enter Username to DELETE: " << RESET;
-    cin >> target_user;
-
-    if (!is_username_taken(target_user)) {
-        cout << RED << "Error: User does not exist." << RESET << endl;
-        return;
-    }
-
-    ifstream inFile(USER_FILE.c_str());
-    ofstream outFile("temp.txt");
-
-    bool found = false;
-    while (inFile >> username >> password) {
-        if (username != target_user) {
-            outFile << username << " " << password << endl;
-        } else {
-            found = true; 
-        }
-    }
-
-    inFile.close();
-    outFile.close();
-
-    if (found) {
-        remove(USER_FILE.c_str());
-        rename("temp.txt", USER_FILE.c_str());
-        cout << GREEN << "User removed successfully." << RESET << endl;
-    } else {
-        remove("temp.txt");
-    }
-}
-
-// ===== 3. BILLING SYSTEM (Moved from Main) =====
-void start_billing_system() {
-    cin.ignore(); // clear buffer
+   
     string customer_name;
-    cout << BLUE << "\n===================================" << RESET << endl;
-    cout << YELLOW << "      STARTING BILLING MODE        " << RESET << endl;
-    cout << BLUE << "===================================" << RESET << endl;
-    
-    cout << CYAN << "Enter Customer Name : " << RESET;
-    getline(cin, customer_name);
-    
+    cout << CYAN << "Enter Customer Name : " << RESET;   //input customer name
+    cin>> customer_name;
+    getline(cin, customer_name);           //using getline to also read name if there are two words in a name
+    cout << endl;
+
     int total_number_of_products;
     cout << CYAN << "Enter total number of products : " << RESET;
     do {
-        cin >> total_number_of_products;
-        if (total_number_of_products < 0) cout << RED << "Invalid input! " << RESET;
-    } while (total_number_of_products < 0);
+        cin >> total_number_of_products;  //input total number of products
+        if (total_number_of_products < 0) {
+            cout << RED << "Invalid input! please again enter total number of products : " << RESET;
+        }
+    } while (total_number_of_products < 0);   //asking user again to enter total products if entered less than 1 products previously
+    cout << endl;
 
-    string products[total_number_of_products];
-    double price[total_number_of_products];
-    int quantity[total_number_of_products];
+    string products[total_number_of_products];    //storing products name in array as entered by cashier
+    double price[total_number_of_products];        //storing price of each product in an array entered by cashier
+    int quantity[total_number_of_products];       //storing quantity of each product in an array entered by cashier
 
     for (int i = 0; i < total_number_of_products; i++) {
         cout << MAGENTA << "Enter name of product " << i + 1 << " : " << RESET;
-        cin.ignore();
-        getline(cin, products[i]);
+        cin.ignore();                      //ignoring previous input so there is no mixing with coming input
+        getline(cin, products[i]);         //input names of product
 
-        cout << YELLOW << "Enter price: " << RESET;
-        do { cin >> price[i]; } while (price[i] < 0);
+        cout << YELLOW << "Enter price of product " << i + 1 << " : " << RESET;
+        do {
+            cin >> price[i];             //input price of product
+            if (price[i] < 0) {
+                cout << RED << "Invalid input! please again enter price of product : " << RESET;
+            }
+        } while (price[i] < 0);     //asking again for price if user enters less than 0 price
 
-        cout << YELLOW << "Enter quantity: " << RESET;
-        do { cin >> quantity[i]; } while (quantity[i] < 0);
+        cout << YELLOW << "Enter quantity of product " << i + 1 << " : " << RESET;
+        do {
+            cin >> quantity[i];    //input quantity of each product
+            if (quantity[i] < 0) {
+                cout << RED << "Invalid input! please again enter quantity of product :  " << RESET;
+            }
+        } while (quantity[i] < 0);        //asking again for quantity if user enters less than 0 quantity
+
         cout << endl;
     }
 
     srand(time(0));
-    int bill_number = rand() % 10000;
+    int bill_number = rand() % 10000;         //random bill generator in the range of 10000
+
     time_t now = time(0); 
-    char *dt = ctime(&now);
+    char *dt = ctime(&now);                  //printing current date and time
 
-    cout << GREEN << "\nCalculating Bill...\n" << RESET;
+
+    cout << BLUE << "==================================================" << RESET << endl;
+    cout << GREEN << "                   BILL RECEIPT                 " << RESET << endl;
+    cout << BLUE << "==================================================" << RESET << endl;
+
+    cout << CYAN << "\nCustomer name : " << RESET << customer_name << endl;
+    cout << CYAN << "Bill number   : " << RESET << bill_number << endl;
+    cout << CYAN << "Date and Time : " << RESET << dt;
+    cout << BLUE << "--------------------------------------------------" << RESET << endl;
+
+    cout << left
+         << YELLOW << setw(15) << "Products"
+         << setw(10) << "Price"
+         << setw(12) << "Quantity"
+         << setw(10) << "Total(Rs.)" << RESET << endl;
+
+    cout << BLUE << "--------------------------------------------------" << RESET << endl;
+
+    for (int i = 0; i < total_number_of_products; i++) {
+        cout << left
+             << WHITE << setw(16) << products[i]
+             << setw(12) << price[i]
+             << setw(10) << quantity[i]
+             << GREEN << price[i] * quantity[i] << " Rs." << RESET << endl;
+
+        cout << BLUE << "--------------------------------------------------" << RESET << endl;
+    }
+
     double total_bill = calculate_total(price, quantity, total_number_of_products);
-    double discount = (total_bill > 1000) ? 0.10 * total_bill : 0;
-    double tax = 0.05 * total_bill;
-    double sub_total = (total_bill - discount) + tax;
+    cout << CYAN << "\n              Total Bill : " << GREEN << total_bill << " Rs." << RESET << endl;
 
-    // Print Receipt
-    save_and_print_summary(customer_name, bill_number, dt, products, price, quantity, total_number_of_products, total_bill, discount, tax, sub_total);
+    double discount = 0;
+    if (total_bill > 1000) {
+        discount = 0.10 * total_bill;
+        cout << CYAN << "                Discount : " << GREEN << discount << " Rs." << RESET << endl;
+    }
 
-    // --- Payment ---
+    double tax = (0.05 * total_bill);
+    cout << CYAN << "                     Tax : " << GREEN << tax << " Rs." << RESET << endl << endl;
+
+    cout << BLUE << "--------------------------------------------------" << RESET << endl << endl;
+
+    float sub_total = ((total_bill - discount) + tax);
+    cout << CYAN << "               Sub Total : " << GREEN << sub_total << " Rs." << RESET << endl << endl;
+
+    cout << BLUE << "--------------------------------------------------" << RESET << endl << endl;
+
     int choice;
     double recieved_cash, remaining_amount;
-    string phone_number; // Variable to store phone number
-    int otp;             // Variable to store OTP
 
-    cout << MAGENTA << "\nPayment Methods: " << RESET << endl; 
-    cout << CYAN << "1-Jazzcash\n2-Card\n3-Easypaisa\n4-Cash" << RESET << endl;
-    cout << YELLOW << "Select Method: " << RESET;
-    
+    cout << MAGENTA << "Payment Methods : " << RESET << endl << endl;
+    cout << "     " << CYAN << "1-Jazzcash" << RESET << endl;
+    cout << "     " << CYAN << "2-Bank Credit Card" << RESET << endl;
+    cout << "     " << CYAN << "3-Easypaisa" << RESET << endl;
+    cout << "     " << CYAN << "4-Cash" << RESET << endl << endl;
+
+    cout << YELLOW << "Select Payment Method : " << RESET;
+
     do {
         cin >> choice;
-        switch(choice) {
-            case 1: 
-                // JazzCash Logic with Error Handling
-                do {
-                    cout << CYAN << "Enter JazzCash Account Number (11 digits): " << RESET;
-                    cin >> phone_number;
-                    if (phone_number.length() != 11) {
-                        cout << RED << "Error: Number must be exactly 11 digits. Try again." << RESET << endl;
-                    }
-                } while(phone_number.length() != 11);
+        switch (choice) {
+        case 1:
+            cout << GREEN << "Selected Method : JazzCash. Processing payment..." << endl;
+            cout << "Payment Successful" << RESET << endl;
+            break;
 
-                cout << YELLOW << "Sending OTP to " << phone_number << "..." << RESET << endl;
-                cout << CYAN << "Enter OTP received on phone: " << RESET;
-                cin >> otp;
-                cout << GREEN << "Payment Verified! Paid via JazzCash." << RESET << endl;
-                break;
+        case 2:
+            cout << GREEN << "Selected Method : Credit Card. Redirecting..." << endl;
+            cout << "Payment Successful" << RESET << endl;
+            break;
 
-            case 2: 
-                cout << GREEN << "Paid via Card." << RESET << endl; 
-                break;
+        case 3:
+            cout << GREEN << "Selected Method : EasyPaisa. Processing..." << endl;
+            cout << "Payment Successful" << RESET << endl;
+            break;
 
-            case 3: 
-                // EasyPaisa Logic with Error Handling
-                do {
-                    cout << CYAN << "Enter EasyPaisa Account Number (11 digits): " << RESET;
-                    cin >> phone_number;
-                    if (phone_number.length() != 11) {
-                        cout << RED << "Error: Number must be exactly 11 digits. Try again." << RESET << endl;
-                    }
-                } while(phone_number.length() != 11);
+        case 4:
+            cout << YELLOW << "Selected Method : Cash. Please pay at counter.\n" << RESET << endl;
+            cout << CYAN << "Total Cash To Pay : " << GREEN << sub_total << " Rs." << RESET << endl;
 
-                cout << YELLOW << "Sending OTP to " << phone_number << "..." << RESET << endl;
-                cout << CYAN << "Enter OTP received on phone: " << RESET;
-                cin >> otp;
-                cout << GREEN << "Payment Verified! Paid via EasyPaisa." << RESET << endl;
-                break;
+            remaining_amount = sub_total;
 
-            case 4:
-                 cout << YELLOW << "Selected Cash. Total to Pay: " << sub_total << RESET << endl;
-                 remaining_amount = sub_total;
-                 while (remaining_amount > 0) {
-                    cout << CYAN << "Enter Cash: " << RESET;
-                    cin >> recieved_cash;
-                    remaining_amount -= recieved_cash;
-                    if (remaining_amount > 0) cout << YELLOW << "Remaining: " << remaining_amount << endl;
-                 }
-                 if (remaining_amount < 0) cout << GREEN << "Change: " << -remaining_amount << " Rs." << RESET << endl;
-                 break;
-                 
-            default: cout << RED << "Invalid!" << RESET << endl;
-        }
-    } while (choice < 1 || choice > 4);
+            while (remaining_amount > 0) {
+                cout << CYAN << "Enter Cash Received : " << RESET;
+                cin >> recieved_cash;
 
-    cout << GREEN << "\nTransaction Complete! returning to Dashboard..." << RESET << endl;
-}
+                if (recieved_cash <= 0) {
+                    cout << RED << "Invalid amount! Enter again." << RESET << endl;
+                    continue;
+                }
 
-// ===== 4. ADMIN DASHBOARD (Post-Login Menu) =====
-void admin_dashboard() {
-    int choice;
-    while (true) {
-        cout << endl << BLUE << "==========================================" << RESET << endl;
-        cout << GREEN << "           ADMIN DASHBOARD                " << RESET << endl;
-        cout << BLUE << "==========================================" << RESET << endl;
-        cout << "1. Start Billing System" << endl;
-        cout << "2. Add New User" << endl;
-        cout << "3. Remove User" << endl;
-        cout << "4. Logout" << endl;
-        cout << YELLOW << "Select Option: " << RESET;
-        cin >> choice;
+                remaining_amount -= recieved_cash;
 
-        switch(choice) {
-            case 1:
-                start_billing_system();
-                break;
-            case 2:
-                register_user();
-                break;
-            case 3:
-                delete_user();
-                break;
-            case 4:
-                cout << GREEN << "Logging out..." << RESET << endl;
-                return; // Returns to main, which exits
-            default:
-                cout << RED << "Invalid option!" << RESET << endl;
-        }
-    }
-}
-
-// ===== 5. LOGIN FUNCTION =====
-bool perform_login() {
-    string input_user, input_pass, f_user, f_pass;
-    int attempts = 3;
-
-    cout << BLUE << "================================" << RESET << endl;
-    cout << GREEN << "           LOGIN SYSTEM         " << RESET << endl;
-    cout << BLUE << "================================" << RESET << endl;
-
-    // Check if file exists/is empty. If empty, allow creating admin.
-    ifstream checkFile(USER_FILE.c_str());
-    if (!checkFile.good()) {
-        cout << RED << "No users found in database." << RESET << endl;
-        cout << YELLOW << "Entering Setup Mode to create first Admin." << RESET << endl;
-        register_user(); // Force register if no file exists
-    }
-    checkFile.close();
-
-    while (attempts > 0) {
-        cout << CYAN << "Enter Username : " << RESET;
-        cin >> input_user;
-        cout << CYAN << "Enter Password : " << RESET;
-        cin >> input_pass;
-
-        ifstream file(USER_FILE.c_str());
-        bool login_success = false;
-
-        if (file.is_open()) {
-            while (file >> f_user >> f_pass) {
-                if (f_user == input_user && f_pass == input_pass) {
-                    login_success = true;
-                    break;
+                if (remaining_amount > 0) {
+                    cout << YELLOW << "You still need to pay: " << remaining_amount << " Rs.\n" << RESET;
                 }
             }
-            file.close();
-        }
 
-        if (login_success) {
-            cout << GREEN << "\n======= LOGIN SUCCESSFUL =======" << RESET << endl;
-            return true;
-        } else {
-            attempts--;
-            cout << RED << "Invalid Credentials! Attempts left: " << attempts << RESET << endl;
-        }
-    }
-    return false;
-}
+            if (remaining_amount < 0) {
+                cout << GREEN << "Change : " << -remaining_amount << " Rs." << RESET << endl;
+            }
 
-int main() {
-    // 1. Attempt to Login
-    if (perform_login()) {
-        // 2. If Login Success, Go to Admin Dashboard
-        admin_dashboard();
-    } else {
-        cout << RED << "Access Denied. Terminating." << RESET << endl;
-    }
+            cout << GREEN << "Payment Successful!" << RESET << endl;
+            break;
+
+        default:
+            cout << RED << "Invalid Choice! Please select a valid option (1 to 4): " << RESET;
+        }
+    } while (choice > 4 || choice < 1);
+
+    save_and_print_summary(customer_name, bill_number, dt, products, price, quantity,  total_number_of_products,  total_bill, discount, tax, sub_total);
+    
+
+    cout << GREEN << "\n\nThank you for shopping " << customer_name << " !" << RESET << endl;
+
 
     return 0;
 }
